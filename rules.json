@@ -1412,6 +1412,15 @@
       ]
     },
     {
+      "name": "pydantic-ai",
+      "tags": [
+        "ai",
+        "agent",
+        "llm",
+        "python"
+      ]
+    },
+    {
       "name": "pygame",
       "tags": [
         "ui",

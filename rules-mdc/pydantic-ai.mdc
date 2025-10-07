@@ -1,0 +1,212 @@
+---
+description: Enforces best practices and coding standards for pydantic-ai projects to ensure maintainability, performance, and security. Covers code structure, common patterns, performance considerations, security, testing, and tooling.
+globs: **/*.py
+---
+# Pydantic-AI Best Practices
+
+This document outlines best practices and coding standards for developing with pydantic-ai. Following these guidelines will help ensure maintainable, performant, and secure applications.
+
+## 1. Code Organization and Structure
+
+*   **Modular Design:**
+    *   Break down complex tasks into smaller, reusable modules or functions.  Each module should have a clear responsibility and a well-defined interface. This promotes code reusability, testability, and maintainability.
+    *   Use packages and subpackages to organize modules into logical groups.  This is crucial for larger projects to manage dependencies and improve code navigation.
+
+*   **Layered Architecture:**
+    *   Consider a layered architecture (e.g., data access, business logic, presentation) to separate concerns. This makes the application easier to understand, test, and modify.
+    *   Clearly define the responsibilities of each layer and the interactions between them.
+
+*   **Directory Structure:**
+    *   Adopt a consistent and well-defined directory structure. A common structure might include:
+        
+        project_root/
+        ├── src/
+        │   ├── models/  # Pydantic models defining data structures
+        │   ├── agents/  # Agent implementations using pydantic-ai
+        │   ├── llm/      # LLM integrations and utilities
+        │   ├── utils/    # General utility functions
+        │   ├── config/   # Configuration files and settings
+        │   └── main.py  # Entry point of the application
+        ├── tests/ # Unit and integration tests
+        ├── docs/  # Documentation
+        ├── requirements.txt # Project dependencies
+        └── README.md # Project overview and instructions
+        
+
+*   **Configuration Management:**
+    *   Use a configuration file (e.g., `.env`, `config.yaml`) to store application settings, API keys, and other environment-specific parameters.
+    *   Load configuration settings using libraries like `python-dotenv` or `pydantic-settings`.  Avoid hardcoding sensitive information directly in the code.
+
+## 2. Common Patterns and Anti-patterns
+
+*   **Model Definition:**
+    *   **Pattern:** Use Pydantic models to define the structure of data exchanged with LLMs. This ensures data validation and type safety.
+        python
+        from pydantic import BaseModel
+
+        class UserProfile(BaseModel):
+            name: str
+            age: int
+            interests: list[str]
+        
+    *   **Anti-pattern:** Directly passing raw strings or dictionaries to LLMs without validation. This can lead to unexpected errors and security vulnerabilities.
+
+*   **Agent Design:**
+    *   **Pattern:** Create specialized agents for specific tasks.  Each agent should have a clear role and a well-defined interface.
+        python
+        from pydantic_ai import LLMAgent
+
+        class SummarizationAgent(LLMAgent):
+            def summarize(self, text: str) -> str:
+                # Logic to summarize the text using an LLM
+                ...
+                return summary
+        
+    *   **Anti-pattern:** Creating monolithic agents that handle multiple unrelated tasks. This makes the code harder to understand, test, and maintain.
+
+*   **Prompt Engineering:**
+    *   **Pattern:** Use clear and concise prompts that guide the LLM towards the desired output.  Experiment with different prompt variations to optimize performance.
+        python
+        prompt = "Summarize the following text in three sentences:\n{text}"
+        
+    *   **Anti-pattern:** Using vague or ambiguous prompts that can lead to unpredictable results.  Avoid injecting user-supplied data directly into prompts without proper sanitization.
+
+*   **Error Handling:**
+    *   **Pattern:** Implement robust error handling to gracefully handle exceptions and prevent application crashes.
+        python
+        try:
+            # Code that interacts with an LLM
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+            # Handle the error appropriately
+        
+    *   **Anti-pattern:** Ignoring exceptions or simply printing error messages without taking corrective action.
+
+*   **Data Serialization:**
+    *   **Pattern:** Use Pydantic's serialization capabilities to convert complex data structures into JSON strings for LLM communication.
+        python
+        data = UserProfile(name="John Doe", age=30, interests=["reading", "hiking"])
+        json_data = data.model_dump_json()
+        
+    *   **Anti-pattern:** Manually constructing JSON strings or using ad-hoc serialization methods.
+
+## 3. Performance Considerations
+
+*   **LLM Selection:**
+    *   Choose the appropriate LLM for the task at hand.  Consider factors such as cost, performance, and accuracy.
+    *   Experiment with different LLMs to find the best balance between performance and cost.
+
+*   **Caching:**
+    *   Implement caching mechanisms to store the results of LLM calls.  This can significantly reduce latency and cost, especially for frequently accessed data.
+    *   Use libraries like `cachetools` or `redis` to implement caching.
+
+*   **Batch Processing:**
+    *   Process multiple requests in batches to reduce the overhead of LLM calls.  This can improve throughput and reduce overall processing time.
+    *   Use asynchronous programming techniques to process batches in parallel.
+
+*   **Token Usage:**
+    *   Minimize the number of tokens used in prompts and responses.  Shorter prompts and responses are generally faster and cheaper to process.
+    *   Use techniques like summarization and compression to reduce token usage.
+
+*   **Asynchronous Operations:**
+    *   Use asynchronous programming (`asyncio`) to avoid blocking the main thread while waiting for LLM responses. This improves the responsiveness of the application.
+    *   Utilize `async` and `await` keywords when interacting with LLM APIs.
+
+*   **Profiling and Optimization:**
+    *   Use profiling tools to identify performance bottlenecks.  Optimize code and data structures to improve performance.
+    *   Consider using libraries like `cProfile` or `py-spy` for profiling.
+
+## 4. Security Best Practices
+
+*   **Input Validation:**
+    *   Validate all user inputs to prevent injection attacks and other security vulnerabilities.  Use Pydantic models to enforce data types and constraints.
+    *   Sanitize user inputs before passing them to LLMs.
+
+*   **Prompt Injection:**
+    *   Be aware of prompt injection attacks, where malicious users can manipulate prompts to generate unintended outputs.
+    *   Implement safeguards to prevent prompt injection, such as input validation and prompt sanitization.
+
+*   **API Key Management:**
+    *   Store API keys securely using environment variables or a dedicated secrets management system.
+    *   Avoid hardcoding API keys directly in the code.
+
+*   **Rate Limiting:**
+    *   Implement rate limiting to prevent abuse and protect against denial-of-service attacks.
+    *   Use libraries like `limits` to enforce rate limits.
+
+*   **Data Privacy:**
+    *   Comply with data privacy regulations such as GDPR and CCPA.  Protect sensitive user data and obtain consent before collecting or processing it.
+
+*   **Output Sanitization:**
+    *   Sanitize LLM outputs before displaying them to users to prevent cross-site scripting (XSS) attacks.
+    *   Use a library like `bleach` to sanitize HTML outputs.
+
+## 5. Testing Approaches
+
+*   **Unit Testing:**
+    *   Write unit tests to verify the functionality of individual modules and functions.  Use a testing framework like `pytest` or `unittest`.
+    *   Mock LLM APIs to isolate the code under test and avoid making actual API calls during unit tests.
+
+*   **Integration Testing:**
+    *   Write integration tests to verify the interactions between different modules and components.  Test the end-to-end flow of the application.
+    *   Use a testing environment that closely resembles the production environment.
+
+*   **LLM Response Testing:**
+    *   Test the quality and accuracy of LLM responses.  Use metrics like relevance, coherence, and factuality to evaluate the responses.
+    *   Create a test dataset of representative inputs and expected outputs.
+
+*   **Prompt Testing:**
+    *   Test different prompt variations to optimize performance and robustness.  Measure the impact of prompt changes on LLM output quality.
+    *   Use a prompt engineering framework to manage and test prompts.
+
+*   **Security Testing:**
+    *   Conduct security testing to identify and mitigate potential vulnerabilities.  Use tools like static analysis and penetration testing to assess the security of the application.
+
+## 6. Common Pitfalls and Gotchas
+
+*   **Token Limits:**
+    *   Be aware of the token limits of LLM APIs.  Exceeding the token limit can result in errors or truncated responses.
+    *   Use techniques like summarization and compression to reduce token usage.
+
+*   **API Rate Limits:**
+    *   Be aware of the API rate limits.  Exceeding the rate limit can result in temporary or permanent suspension of access.
+    *   Implement rate limiting in the application to avoid exceeding the API rate limits.
+
+*   **LLM Hallucinations:**
+    *   LLMs can sometimes generate incorrect or nonsensical information.  Verify the accuracy of LLM outputs and implement safeguards to prevent the spread of misinformation.
+
+*   **Bias:**
+    *   LLMs can inherit biases from their training data.  Be aware of potential biases in LLM outputs and take steps to mitigate them.
+
+*   **Non-Determinism:**
+    *   LLM responses can be non-deterministic, meaning that the same input can produce different outputs.  Account for this variability when designing and testing applications.
+
+*   **Cost Management:**
+    *   Monitor LLM usage and cost to avoid unexpected expenses.  Implement cost controls such as usage limits and budget alerts.
+
+## 7. Tooling and Environment
+
+*   **Python Version:**
+    *   Use Python 3.10 or later.  Older versions of Python may not be compatible with the latest versions of pydantic-ai and other dependencies.
+
+*   **Dependency Management:**
+    *   Use a dependency management tool like `pip` or `conda` to manage project dependencies.  Create a `requirements.txt` file to specify the dependencies.
+    *   Always use UV when installing dependencies
+
+*   **Virtual Environments:**
+    *   Use virtual environments to isolate project dependencies and avoid conflicts.  Create a virtual environment using `venv` or `conda`.
+
+*   **Code Formatting:**
+    *   Use a code formatter like `black` or `autopep8` to ensure consistent code formatting.  Configure the code formatter to automatically format code on save.
+
+*   **Linting:**
+    *   Use a linter like `flake8` or `pylint` to identify potential code quality issues.  Configure the linter to automatically check code for errors and style violations.
+
+*   **Type Checking:**
+    *   Use a type checker like `mypy` to verify type annotations.  Type checking can help prevent runtime errors and improve code maintainability.
+
+*   **IDEs and Editors:**
+    *   Use an IDE or editor with support for Python development.  Popular options include VS Code, PyCharm, and Sublime Text.
+    *   Configure the IDE or editor to use the code formatter, linter, and type checker.
+
+By adhering to these best practices, you can build robust, scalable, and secure applications with pydantic-ai.
